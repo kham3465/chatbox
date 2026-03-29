@@ -12,10 +12,10 @@ spring:
   #       dialect: org.hibernate.dialect.H2Dialect
 
   datasource:
-    url: jdbc:mysql://localhost:3306/your_database_name?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/chatbot?useSSL=false&serverTimezone=UTC
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: your_mysql_user
-    password: your_mysql_password
+    username: root
+    password: admin
   jpa:
     hibernate:
       ddl-auto: update
@@ -47,7 +47,7 @@ server:
   port: 3465
 nhom2:
   openapi:
-    dev-url: http://locahost:3465
+    dev-url: http://localhost:3465
     prod-url: http://localhost:3465
   file:
     allow-extension: png,jpeg,jpg,gif,svg,ico,bmp,mp4,mp3,mov,pdf,docs,xlsx
