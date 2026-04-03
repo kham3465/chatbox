@@ -32,11 +32,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (userRepository.existsByName(request.getName())) {
             throw new ClientErrorException("Tên người dùng đã được đăng ký");
         }
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new ClientErrorException("Số điện thoại đã được đăng ký");
+        }
         User user = new User();
         user.setLicenseScore(request.getLicenseScore());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setIsActive(true);
         user.setName(request.getName());
+        user.setPhoneNumber(request.getPhoneNumber());
         user.setRole(Role.USER);
         user.setCreatedTime(TimeUtil.getCurrentDateTime());
         return userRepository.save(user);

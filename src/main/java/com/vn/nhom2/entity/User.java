@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +35,22 @@ public class User implements UserDetails {
     private LocalDateTime createdTime;
     @Column(name = "is_active")
     private Boolean isActive;
+    @Column(name = "phone_number", unique = true)
+    private String phoneNumber;
+    @Column(name = "full_name")
+    private String fullName;
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+    @Column(name = "sex")
+    private String sex;
+    @Column(name = "height")
+    private Double height;
+    @Column(name = "weight")
+    private Double weight;
+    @Column(name = "blood_group")
+    private String bloodGroup;
+    @Column(name = "image_profile")
+    private String imageProfile;
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
