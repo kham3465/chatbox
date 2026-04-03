@@ -36,7 +36,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ClientErrorException("Số điện thoại đã được đăng ký");
         }
         User user = new User();
-        user.setLicenseScore(request.getLicenseScore());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setIsActive(true);
         user.setName(request.getName());

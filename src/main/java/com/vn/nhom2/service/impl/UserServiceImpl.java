@@ -4,6 +4,7 @@ import com.vn.nhom2.dto.request.UserProfileUpdateRequest;
 import com.vn.nhom2.dto.response.UserProfileResponse;
 import com.vn.nhom2.entity.User;
 import com.vn.nhom2.exception.ClientErrorException;
+import com.vn.nhom2.exception.ResourceNotFoundException;
 import com.vn.nhom2.exception.ServerErrorException;
 import com.vn.nhom2.repo.UserRepository;
 import com.vn.nhom2.service.UserService;
@@ -26,7 +27,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserProfileResponse getUserProfile(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ClientErrorException("Người dùng không tồn tại"));
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại"));
         return mapUserToProfileResponse(user);
     }
 
@@ -34,7 +35,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserProfileResponse updateUserProfile(Long userId, UserProfileUpdateRequest request, MultipartFile imageFile) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ClientErrorException("Người dùng không tồn tại"));
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại"));
 
         // Update profile fields (phone number is excluded and cannot be updated)
         user.setFullName(request.getFullName());

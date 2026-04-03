@@ -24,8 +24,6 @@ public class User implements UserDetails {
     private Long id;
     @Column(name = "name")
     private String name;
-    @Column(name="license_score")
-    private String licenseScore;
     @JsonIgnore
     private String password;
     @Column(name = "type_user")

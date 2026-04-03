@@ -59,7 +59,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Profile retrieved successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardResponse.class))),
-            @ApiResponse(responseCode = "400", description = "User not found"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token"),
             @ApiResponse(responseCode = "403", description = "Forbidden - User not authenticated")
     })
@@ -75,27 +75,59 @@ public class UserController {
      * Requires authentication
      * Phone number cannot be updated once set
      *
-     * @param request the profile update request
-     * @param imageFile optional profile image file
+     * @param request the profile update request (JSON format)
      * @return updated UserProfileResponse
      */
     @PutMapping("/profile")
-    @Operation(summary = "Update current user profile", description = "Update profile information for the currently authenticated user. Phone number cannot be updated.")
+    @Operation(summary = "Update current user profile", description = "Update profile information for the currently authenticated user. Phone number cannot be updated. Send as JSON.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Profile updated successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input data or user not found"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token"),
             @ApiResponse(responseCode = "403", description = "Forbidden - User not authenticated"),
-            @ApiResponse(responseCode = "500", description = "Internal server error - File upload failed")
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<StandardResponse> updateUserProfile(
-            @Valid @ModelAttribute UserProfileUpdateRequest request,
-            @RequestParam(required = false) MultipartFile imageFile) {
+            @Valid @RequestBody UserProfileUpdateRequest request) {
         UserProfileResponse updatedProfile = userService.updateUserProfile(
-                userService.getCurrentUserProfile().getId(), request, imageFile);
+                userService.getCurrentUserProfile().getId(), request, null);
         return ResponseEntity.ok(
                 new StandardResponse("200", "Cập nhật hồ sơ thành công", updatedProfile)
+        );
+    }
+
+    /**
+     * Upload profile image
+     * Requires authentication
+     * Separate endpoint for file upload
+     *
+     * @param imageFile the profile image file
+     * @return updated UserProfileResponse
+     */
+    @PostMapping("/profile/avatar")
+    @Operation(summary = "Upload user profile avatar", description = "Upload a new profile image for the currently authenticated user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Avatar uploaded successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardResponse.class))),
+            @ApiResponse(responseCode = "400", description = "No file provided or invalid file"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User not authenticated"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error - File upload failed")
+    })
+    public ResponseEntity<StandardResponse> uploadProfileAvatar(
+            @RequestParam(required = true) MultipartFile imageFile) {
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new IllegalArgumentException("Image file is required");
+        }
+        UserProfileResponse updatedProfile = userService.updateUserProfile(
+                userService.getCurrentUserProfile().getId(), 
+                new UserProfileUpdateRequest(), 
+                imageFile);
+        return ResponseEntity.ok(
+                new StandardResponse("200", "Hình ảnh đã được tải lên thành công", updatedProfile)
         );
     }
 }

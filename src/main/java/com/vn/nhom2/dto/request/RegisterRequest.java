@@ -10,7 +10,6 @@ public class RegisterRequest {
     private String name;
     @NotBlank(message = "Password cannot be blank")
     private String password;
-    private String licenseScore;
     @NotBlank(message = "Phone number cannot be blank")
     @Pattern(regexp = "^\\d{10,11}$", message = "Phone number must be 10-11 digits")
     private String phoneNumber;
