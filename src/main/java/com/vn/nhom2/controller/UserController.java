@@ -40,8 +40,7 @@ public class UserController {
 	})
 	public ResponseEntity<StandardResponse> getCurrentUserProfile() {
 		UserProfileResponse profile = userService.getCurrentUserProfile();
-		return ResponseEntity.ok(
-				new StandardResponse("200", "Thành công", profile));
+		return ResponseEntity.ok(new StandardResponse("200", "Thành công", profile));
 	}
 
 	/**
