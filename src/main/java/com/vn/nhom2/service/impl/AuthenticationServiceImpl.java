@@ -7,6 +7,7 @@ import com.vn.nhom2.dto.response.AuthenticationResponse;
 import com.vn.nhom2.entity.User;
 import com.vn.nhom2.enums.Role;
 import com.vn.nhom2.exception.ClientErrorException;
+import com.vn.nhom2.exception.ResourceConflictException;
 import com.vn.nhom2.repo.UserRepository;
 import com.vn.nhom2.service.AuthenticationService;
 import com.vn.nhom2.util.TimeUtil;
@@ -32,14 +33,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (userRepository.existsByName(request.getName())) {
             throw new ClientErrorException("Tên người dùng đã được đăng ký");
         }
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new ResourceConflictException("Số điện thoại đã được đăng ký");
+        }
         User user = new User();
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setIsActive(true);
         user.setName(request.getName());
+        user.setPhoneNumber(request.getPhoneNumber());
         user.setRole(Role.USER);
         user.setCreatedTime(TimeUtil.getCurrentDateTime());
         return userRepository.save(user);
     }
+    
     @Override
     @Transactional
     public AuthenticationResponse authenticate(AuthenticationRequest request) {

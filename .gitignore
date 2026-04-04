@@ -30,5 +30,11 @@ build/
 ### VS Code ###
 .vscode/
 .idea/
+
+### AI Agents
+.github
+.agents
+
+### env
 environment-*.properties
 application-*.yml

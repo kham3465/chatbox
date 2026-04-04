@@ -1,93 +1,206 @@
-# api_acd
+# ChatBox Backend Service
 
+## Overview
+This is a Spring Boot backend service for user authentication, JWT-based security, and content generation via Google Gemini.
 
+It provides:
+- User registration and login
+- JWT token generation and validation
+- Public AI query endpoint for Gemini-powered content
+- Swagger/OpenAPI documentation support
+- H2 in-memory database by default (configurable for MySQL)
+- SMTP mail support and file upload configuration
 
-## Getting started
+## Tech stack
+- Java 17
+- Spring Boot 3.1.0-RC1
+- Spring Security
+- Spring Data JPA
+- Spring Web
+- Spring Validation
+- Spring WebSocket
+- Spring Mail
+- H2 database (default)
+- MySQL connector (runtime optional)
+- JSON Web Tokens via jjwt
+- Swagger/OpenAPI via springdoc-openapi-starter-webmvc-ui
+- Lombok
+- Log4j / Log4j iostreams
+- RestTemplate + Jackson for Google Gemini API calls
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Tech stack details
+- Java 17: the runtime and language level used for this project. Provides modern Java features and long-term support.
+- Spring Boot 3.1.0-RC1: the framework that bootstraps the application, manages dependency configuration, and embeds the web server.
+- Spring Security: secures the API endpoints, authenticates users, and integrates JWT-based stateless authentication.
+- Spring Data JPA: simplifies database access with repository abstractions and object-relational mapping.
+- Spring Web: provides REST API support, request routing, and the embedded Tomcat/Netty server.
+- Spring Validation: validates incoming request payloads using annotations like `@Valid` and constraint annotations.
+- Spring WebSocket: included for real-time communication support if future WebSocket features are added.
+- Spring Mail: supports SMTP email sending when mail functionality is required.
+- H2 Database: default in-memory database used for development and testing.
+- MySQL Connector/J: optional JDBC driver for connecting to a MySQL database in production.
+- JJWT (`io.jsonwebtoken`): library for generating, signing, and validating JWT access tokens.
+- Springdoc OpenAPI: auto-generates OpenAPI documentation and serves Swagger UI for API exploration.
+- Lombok: reduces boilerplate code by generating getters, setters, constructors, and builders at compile time.
+- Log4j / Log4j iostreams: application logging and streaming utilities.
+- RestTemplate + Jackson: used by `GeminiServiceImpl` to call Google Gemini and parse JSON responses.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### Additional libraries in the project
+- `commons-codec`: helpers for encoding and decoding binary/ASCII formats.
+- `httpclient` / `httpcore`: Apache HTTP client support for custom request handling.
+- `okhttp`: alternative HTTP client library used for external API calls.
+- `gson`: JSON serialization/deserialization helper.
+- `commons-io`: utility helpers for I/O operations and file handling.
 
-## Add your files
+## Project structure
+- com.vn.nhom2.AppChatBox - application entry point
+- config/ - Spring security, OpenAPI, JWT, CORS, application config
+- controller/ - REST API controllers
+- service/ - business logic and integration services
+- repository/ - JPA repositories
+- entity/ - JPA entity model
+- util/ - utility and response wrappers
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## Purpose
+This service is designed to act as a backend API for:
+- user registration and authentication
+- issuing JWT access tokens
+- securing API routes with stateless JWT auth
+- providing an AI content generation endpoint
+- exposing OpenAPI documentation for client integration
 
+## Configuration
+Configuration lives in `src/main/resources/application.yml`.
+
+### Database configuration
+This project is configured to use H2 in-memory database by default. H2 is useful for development and testing because it requires no external database server.
+
+Default H2 configuration in `application.yml`:
+```yaml
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/khamnguyen/api_acd.git
-git branch -M main
-git push -uf origin main
+
+If you need MySQL instead, update the datasource section and provide your MySQL credentials. Example MySQL configuration:
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/your_database_name?useSSL=false&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: your_mysql_user
+    password: your_mysql_password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
 ```
 
-## Integrate with your tools
+Important MySQL notes:
+- Create the database before starting the application.
+- Use an appropriate user account with permissions to create tables and read/write data.
+- `ddl-auto: update` will create/update tables automatically, but for production consider using `validate` or `none` and schema migrations instead.
 
-- [ ] [Set up project integrations](https://gitlab.com/khamnguyen/api_acd/-/settings/integrations)
+### Other key settings
+- `spring.servlet.multipart` - file upload limits
+- `spring.mail` - SMTP settings for email support
+- `application.security.jwt.secret-key` - JWT signing secret
+- `application.security.jwt.expiration` - token lifetime in ms
+- `server.port` - default port 3465
+- `nhom2.openapi.dev-url` / `prod-url` - OpenAPI server URLs
+- `nhom2.file.*` - allowed file extensions and limits
+- `gemini.api-key` - API key used by `GeminiServiceImpl`
 
-## Collaborate with your team
+### Recommended production changes
+- Replace `application.security.jwt.secret-key` with a secure Base64 secret.
+- Do not commit real API keys or SMTP credentials into source control.
+- Use environment variables or externalized configuration for secrets.
+- Switch from H2 to MySQL by updating `spring.datasource` and using a proper production database.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+## Running locally
+### Prerequisites
+- Java 17 installed
+- Maven installed, or use the bundled Maven wrapper
+- Internet access for Gemini API if using AI generation
 
-## Test and Deploy
+### Start the app
+From the project root:
 
-Use the built-in continuous integration in GitLab.
+Windows:
+```powershell
+.\\mvnw.cmd spring-boot:run
+```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+Linux/macOS:
+```bash
+./mvnw spring-boot:run
+```
 
-***
+Or build and run the jar:
+```bash
+./mvnw clean package
+java -jar target/nhom2-0.0.1-SNAPSHOT.jar
+```
 
-# Editing this README
+### Default server URL
+- http://localhost:3465
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## API Endpoints
+### Authentication
+- POST /api/v1/auth/register
+  - Request body: RegisterRequest
+  - Registers a new user
+- POST /api/v1/auth/authenticate
+  - Request body: AuthenticationRequest
+  - Authenticates a user and returns AuthenticationResponse including a JWT
 
-## Suggestions for a good README
+### Public AI endpoint
+- GET /api/v1/public/ask?q={prompt}
+  - Sends q to Google Gemini and returns the raw response body
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### API docs
+- OpenAPI JSON: /v3/api-docs
+- Swagger UI: /swagger-ui/index.html
 
-## Name
-Choose a self-explaining name for your project.
+## Security behavior
+- Stateless JWT security with JwtAuthenticationFilter
+- SecurityConfiguration permits unauthenticated access to:
+  - /api/v1/auth/**
+  - /v3/api-docs/**
+  - /swagger-ui/**
+  - /api/v1/file/**
+  - /api/v1/user/**
+  - /api/v1/admin/**
+  - /api/v1/public/**
+- All other routes require authentication
+- CORS is enabled for http://localhost:3465 and http://localhost:8080
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+## Important implementation details
+- AuthenticationServiceImpl handles registration and login
+- User entity implements UserDetails for Spring Security
+- JwtService creates and validates JWT tokens
+- GeminiServiceImpl posts prompt content to Google Gemini via REST
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Notes
+- The current application.yml contains sensitive example values. Replace them before deploying.
+- If you want MySQL instead of H2, configure the spring.datasource.url, username, password, and driver accordingly.
+- springdoc-openapi configuration is in OpenAPIConfig.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+## Useful commands
+- ./mvnw clean package - build jar
+- ./mvnw test - run tests
+- ./mvnw spring-boot:run - run app directly
 
 ## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+No license is defined in this repository. Add a license file if this project will be shared publicly.
