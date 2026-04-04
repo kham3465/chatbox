@@ -33,7 +33,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ClientErrorException("Tên người dùng đã được đăng ký");
         }
         User user = new User();
-        user.setLicenseScore(request.getLicenseScore());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setIsActive(true);
         user.setName(request.getName());

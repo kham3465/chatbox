@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USER}
+    password: ${MAIL_PASS}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET}
+      expiration: 8640000000000
+
+server:
+  port: ${SERVER_PORT}
+
+nhom2:
+  file:
+    allow-extension: ${NHOM2_FILE_ALLOW_EXTENSION}
+    max-file-size: ${NHOM2_FILE_MAX_FILE_SIZE}
+    max-request-size: ${NHOM2_FILE_MAX_REQUEST_SIZE}
+  openapi:
+    dev-url: ${DEV_URL}
+    prod-url: ${PROD_URL}
+  host: ${DEV_URL}
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
