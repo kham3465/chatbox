@@ -33,7 +33,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserProfileResponse updateUserProfile(Long userId, UserProfileUpdateRequest request, MultipartFile imageFile) {
+    public UserProfileResponse updateUserProfile(Long userId, UserProfileUpdateRequest request,
+            MultipartFile imageFile) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại"));
 
@@ -80,7 +81,6 @@ public class UserServiceImpl implements UserService {
                 user.getHeight(),
                 user.getWeight(),
                 user.getBloodGroup(),
-                user.getImageProfile()
-        );
+                user.getImageProfile());
     }
 }

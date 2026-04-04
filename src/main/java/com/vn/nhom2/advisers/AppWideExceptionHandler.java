@@ -2,6 +2,7 @@ package com.vn.nhom2.advisers;
 
 import com.vn.nhom2.exception.ServerErrorException;
 import com.vn.nhom2.exception.ClientErrorException;
+import com.vn.nhom2.exception.ResourceConflictException;
 import com.vn.nhom2.exception.ResourceNotFoundException;
 import com.vn.nhom2.util.StandardResponse;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,12 @@ import java.util.List;
 @RestControllerAdvice
 @CrossOrigin
 public class AppWideExceptionHandler {
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<StandardResponse> handleResourceConflictException(ResourceConflictException ex) {
+        StandardResponse response = new StandardResponse(String.valueOf(HttpStatus.CONFLICT.value()), ex.getMessage(), null);
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleException(Exception e) {
         return new ResponseEntity<>(new StandardResponse("500", "Error", e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
