@@ -6,6 +6,10 @@ import com.vn.nhom2.dto.request.RegisterRequest;
 import com.vn.nhom2.service.AuthenticationService;
 import com.vn.nhom2.util.StandardResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,18 +23,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth", description = "Auth management APIs")
+@Tag(name = "Authentication", description = "Authentication and registration endpoints - No authentication required")
 public class AuthenticationController {
     private final AuthenticationService service;
 
     @PostMapping("/register")
-    @Operation(description = "API đăng ký user")
+    @Operation(summary = "Register a new user", description = "Create a new user account with phone number, username, password, and license score")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User registered successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = User.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input - Username or phone number already exists"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Object> register(@RequestBody @Valid RegisterRequest request) {
         return new ResponseEntity<>(new StandardResponse("200", "Done", service.register(request)), HttpStatus.OK);
     }
+
     @PostMapping("/authenticate")
-    @Operation(description = "API đăng nhập")
+    @Operation(summary = "Login and get JWT token", description = "Authenticate user with username and password to receive JWT token for subsequent authenticated requests")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Authentication successful - JWT token returned",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthenticationResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request) {
         return new ResponseEntity(new StandardResponse("200", "Done", service.authenticate(request)), HttpStatus.OK);
     }
+
+    // Dummy class for Swagger documentation
+    public static class User {}
 }
