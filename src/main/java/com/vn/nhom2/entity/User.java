@@ -14,61 +14,50 @@ import java.util.Collection;
 import java.util.List;
 
 @Data
+
 @Entity
 @NoArgsConstructor
-@Table(name = "user")
+@Table(name = "users")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "phone_number", unique = true, nullable = false)
-    private String phoneNumber;
-
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     private String name;
-
-    @Column(name = "date_of_birth")
-    private LocalDate dateOfBirth;
-
-    @Column(name = "gender")
-    private String gender; // radio button: "Male"/"Female"/"Other"
-
-    @Column(name = "height")
-    private Double height;
-
-    @Column(name = "weight")
-    private Double weight;
-
-    @Column(name = "blood_group")
-    private String bloodGroup;
-
-    @Column(name = "photo_url")
-    private String photoUrl;
-
     @JsonIgnore
     private String password;
-
     @Column(name = "type_user")
     @Enumerated(EnumType.STRING)
     private Role role;
-
     @Column(name = "create_time")
     private LocalDateTime createdTime;
-
     @Column(name = "is_active")
     private Boolean isActive;
-
+    @Column(name = "phone_number", unique = true)
+    private String phoneNumber;
+    @Column(name = "full_name")
+    private String fullName;
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+    @Column(name = "sex")
+    private String sex;
+    @Column(name = "height")
+    private Double height;
+    @Column(name = "weight")
+    private Double weight;
+    @Column(name = "blood_group")
+    private String bloodGroup;
+    @Column(name = "image_profile")
+    private String imageProfile;
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
-
     @Override
     @JsonIgnore
     public String getUsername() {
-        return phoneNumber; // dùng số điện thoại làm username
+        return name;
     }
 
     @Override
