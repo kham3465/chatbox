@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -98,7 +99,7 @@ public class UserController {
 	 * @param imageFile the profile image file
 	 * @return updated UserProfileResponse
 	 */
-	@PostMapping("/profile/avatar")
+	@PostMapping(value = "/profile/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@Operation(summary = "Upload user profile avatar", description = "Upload a new profile image for the currently authenticated user")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Avatar uploaded successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardResponse.class))),

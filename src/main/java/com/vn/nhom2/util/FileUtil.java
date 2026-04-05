@@ -61,4 +61,68 @@ public class FileUtil {
         Path uploadpath = Paths.get(UPLOAD_FOLDER + File.separator + fileName.trim());
         return new UrlResource(uploadpath.toUri());
     }
+
+    public static String saveAvatar(MultipartFile file, FileConfig fileConfig) throws IOException {
+        validateFiles(List.of(file), fileConfig);
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new ClientErrorException("File tải lên phải là hình ảnh");
+        }
+
+        Path uploadPath = Paths.get(fileConfig.getAvatarDir()).normalize();
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        String savedFileName = java.util.UUID.randomUUID().toString() + extension.toLowerCase();
+
+        try (InputStream inputStream = file.getInputStream()) {
+            Path filePath = uploadPath.resolve(savedFileName).normalize();
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            return savedFileName;
+        } catch (IOException ex) {
+            log.error("Could not save avatar file", ex);
+            throw new IOException("Could not save avatar file", ex);
+        }
+    }
+
+    public static Resource getAvatarAsResource(String fileName, FileConfig fileConfig) throws IOException {
+        Path uploadPath = Paths.get(fileConfig.getAvatarDir()).normalize();
+        Path filePath = uploadPath.resolve(fileName.trim()).normalize();
+        
+        // Prevent path traversal
+        if (!filePath.startsWith(uploadPath)) {
+            throw new ClientErrorException("Đường dẫn file không hợp lệ");
+        }
+        
+        Resource resource = new UrlResource(filePath.toUri());
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new ClientErrorException("File không tồn tại hoặc không thể đọc");
+        }
+        return resource;
+    }
+
+    public static void deleteAvatar(String fileName, FileConfig fileConfig) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return;
+        }
+        try {
+            Path uploadPath = Paths.get(fileConfig.getAvatarDir()).normalize();
+            Path filePath = uploadPath.resolve(fileName.trim()).normalize();
+            
+            // Prevent path traversal
+            if (filePath.startsWith(uploadPath)) {
+                Files.deleteIfExists(filePath);
+            }
+        } catch (IOException e) {
+            log.warn("Could not delete old avatar: {}", fileName, e);
+        }
+    }
 }
