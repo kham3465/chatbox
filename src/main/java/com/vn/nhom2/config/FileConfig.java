@@ -19,6 +19,9 @@ public class FileConfig {
     @Value("${nhom2.file.allow-extension}")
     private String allowExtensionConf;
 
+    @Value("${nhom2.file.avatar-dir}")
+    private String avatarDir;
+
     public long getMaxFileSize() {
         return getSize(maxFileSizeConf);
     }

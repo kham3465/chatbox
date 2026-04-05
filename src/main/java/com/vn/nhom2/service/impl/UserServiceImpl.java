@@ -1,5 +1,6 @@
 package com.vn.nhom2.service.impl;
 
+import com.vn.nhom2.config.FileConfig;
 import com.vn.nhom2.dto.request.UserProfileUpdateRequest;
 import com.vn.nhom2.dto.response.UserProfileResponse;
 import com.vn.nhom2.entity.User;
@@ -23,6 +24,7 @@ import java.io.IOException;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final FileConfig fileConfig;
 
     @Override
     public UserProfileResponse getUserProfile(Long userId) {
@@ -49,7 +51,12 @@ public class UserServiceImpl implements UserService {
         // Handle image file upload if provided
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
-                String savedImagePath = FileUtil.saveFile(imageFile.getOriginalFilename(), imageFile);
+                // Delete old avatar if necessary
+                if (user.getImageProfile() != null && !user.getImageProfile().isEmpty()) {
+                    FileUtil.deleteAvatar(user.getImageProfile(), fileConfig);
+                }
+                
+                String savedImagePath = FileUtil.saveAvatar(imageFile, fileConfig);
                 user.setImageProfile(savedImagePath);
             } catch (IOException e) {
                 log.error("Failed to upload image: {}", e.getMessage(), e);

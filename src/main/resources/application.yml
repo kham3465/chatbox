@@ -38,6 +38,7 @@ nhom2:
     allow-extension: ${NHOM2_FILE_ALLOW_EXTENSION}
     max-file-size: ${NHOM2_FILE_MAX_FILE_SIZE}
     max-request-size: ${NHOM2_FILE_MAX_REQUEST_SIZE}
+    avatar-dir: ${NHOM2_FILE_AVATAR_DIR:./data/avatars}
   openapi:
     dev-url: ${DEV_URL}
     prod-url: ${PROD_URL}
