@@ -1,8 +1,10 @@
 package com.vn.nhom2.controller;
 
 import com.vn.nhom2.dto.request.MedicationRequest;
+import com.vn.nhom2.dto.response.ChatMessageResponse;
 import com.vn.nhom2.dto.response.ConsumptionHistoryResponse;
 import com.vn.nhom2.dto.response.MedicationResponse;
+import com.vn.nhom2.service.ChatService;
 import com.vn.nhom2.service.MedicationService;
 import com.vn.nhom2.util.StandardResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,8 +17,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,6 +31,7 @@ import java.util.List;
 @SecurityRequirement(name = "Bearer Authentication")
 public class MedicationController {
     private final MedicationService medicationService;
+    private final ChatService chatService;
 
     /**
      * Get all active medications for the current user
@@ -180,4 +185,5 @@ public class MedicationController {
         List<ConsumptionHistoryResponse> history = medicationService.getConsumptionHistory(medicationId);
         return ResponseEntity.ok(new StandardResponse("200", "Thành công", history));
     }
+
 }

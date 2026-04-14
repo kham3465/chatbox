@@ -45,6 +45,22 @@ public interface UserService {
      */
     UserProfileResponse getCurrentUserProfile();
 
+    /**
+     * Update FCM token for a user
+     *
+     * @param userId the user ID
+     * @param fcmToken the new FCM token
+     */
+    void updateFcmToken(Long userId, String fcmToken);
+
+    /**
+     * Get FCM token for a user (cached)
+     *
+     * @param userId the user ID
+     * @return the FCM token
+     */
+    String getFcmToken(Long userId);
+
     @Slf4j
     class AudioUtil {
 

@@ -3,7 +3,9 @@ package com.vn.nhom2.service;
 import com.vn.nhom2.dto.request.MedicationRequest;
 import com.vn.nhom2.dto.response.ConsumptionHistoryResponse;
 import com.vn.nhom2.dto.response.MedicationResponse;
+import com.vn.nhom2.entity.Medication;
 
+import java.time.LocalTime;
 import java.util.List;
 
 public interface MedicationService {
@@ -63,4 +65,20 @@ public interface MedicationService {
      * @return list of consumption history records
      */
     List<ConsumptionHistoryResponse> getConsumptionHistory(Long medicationId);
+
+    /**
+     * Process medication reminder and send FCM notification.
+     *
+     * @param medicationId the medication ID
+     */
+    void processMedicationReminder(Long medicationId);
+
+    /**
+     * Get list of medications that need a reminder at the specific time.
+     * This method should be cached for efficiency.
+     *
+     * @param time the current time (HH:mm)
+     * @return list of medications
+     */
+    List<Medication> getMedicationsToRemind(LocalTime time);
 }

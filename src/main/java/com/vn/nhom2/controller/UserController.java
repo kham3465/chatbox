@@ -121,4 +121,21 @@ public class UserController {
 		return ResponseEntity.ok(
 				new StandardResponse("200", "Hình ảnh đã được tải lên thành công", updatedProfile));
 	}
+
+	/**
+	 * Update FCM token for the current user
+	 *
+	 * @param token the new FCM token
+	 * @return success message
+	 */
+	@PostMapping("/fcm-token")
+	@Operation(summary = "Update FCM token", description = "Update the Firebase Cloud Messaging token for the current user to receive notifications")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Token updated successfully"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized")
+	})
+	public ResponseEntity<StandardResponse> updateFcmToken(@RequestParam String token) {
+		userService.updateFcmToken(userService.getCurrentUserProfile().getId(), token);
+		return ResponseEntity.ok(new StandardResponse("200", "Cập nhật token thành công", null));
+	}
 }

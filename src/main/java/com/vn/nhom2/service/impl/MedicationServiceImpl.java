@@ -12,13 +12,17 @@ import com.vn.nhom2.repo.ConsumptionHistoryRepository;
 import com.vn.nhom2.repo.MedicationRepository;
 import com.vn.nhom2.service.MedicationService;
 import com.vn.nhom2.util.SecurityUtil;
+import com.vn.nhom2.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +32,8 @@ import java.util.stream.Collectors;
 public class MedicationServiceImpl implements MedicationService {
     private final MedicationRepository medicationRepository;
     private final ConsumptionHistoryRepository consumptionHistoryRepository;
+    private final FCMService fcmService;
+    private final UserService userService;
 
     @Override
     public List<MedicationResponse> getAllMedications() {
@@ -54,6 +60,7 @@ public class MedicationServiceImpl implements MedicationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "medicationReminders", allEntries = true)
     public MedicationResponse createMedication(MedicationRequest request) {
         User currentUser = getCurrentAuthenticatedUser();
         
@@ -83,6 +90,7 @@ public class MedicationServiceImpl implements MedicationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "medicationReminders", allEntries = true)
     public MedicationResponse updateMedication(Long medicationId, MedicationRequest request) {
         User currentUser = getCurrentAuthenticatedUser();
         Medication medication = medicationRepository.findByIdAndUserId(medicationId, currentUser.getId())
@@ -111,6 +119,7 @@ public class MedicationServiceImpl implements MedicationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "medicationReminders", allEntries = true)
     public void deleteMedication(Long medicationId) {
         User currentUser = getCurrentAuthenticatedUser();
         Medication medication = medicationRepository.findByIdAndUserId(medicationId, currentUser.getId())
@@ -286,6 +295,33 @@ public class MedicationServiceImpl implements MedicationService {
                 history.getAmountConsumed(),
                 history.getCreatedTime()
         );
+    }
+    /**
+     * Process medication reminder for a specific medication.
+     * Uses cached FCM tokens for efficiency.
+     */
+    public void processMedicationReminder(Long medicationId) {
+        Medication medication = medicationRepository.findById(medicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Thuốc không tồn tại"));
+        
+        String fcmToken = userService.getFcmToken(medication.getUserId());
+
+        if (fcmToken != null && !fcmToken.isEmpty()) {
+            fcmService.sendNotification(
+                    fcmToken,
+                    "Lịch uống thuốc: " + medication.getName(),
+                    "Đã đến giờ uống " + medication.getDosageAmount() + " " + medication.getDosageUnit() + ". Đừng quên nhé!"
+            );
+            log.info("Sent medication reminder for medication ID: {} to user ID: {}", medicationId, medication.getUserId());
+        }
+    }
+
+
+    @Override
+    @Cacheable(value = "medicationReminders", key = "#time.toString()")
+    public List<Medication> getMedicationsToRemind(LocalTime time) {
+        log.debug("Fetching medications to remind from DB for time: {}", time);
+        return medicationRepository.findMedicationsToRemind(time);
     }
 }
 

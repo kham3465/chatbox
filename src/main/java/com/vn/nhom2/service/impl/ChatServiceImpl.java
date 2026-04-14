@@ -3,6 +3,7 @@ package com.vn.nhom2.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vn.nhom2.config.FileConfig;
 import com.vn.nhom2.dto.response.ChatConversationResponse;
 import com.vn.nhom2.dto.response.ChatMessageResponse;
 import com.vn.nhom2.entity.Conversation;
@@ -26,6 +27,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -40,6 +44,7 @@ public class ChatServiceImpl implements ChatService {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final ObjectMapper objectMapper;
+    private final FileConfig fileConfig;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${gemini.api-key}")
@@ -88,6 +93,7 @@ public class ChatServiceImpl implements ChatService {
                 .build();
 
         if (file != null && !file.isEmpty()) {
+            FileUtil.validateFiles(List.of(file), fileConfig);
             try {
                 String originalFileName = file.getOriginalFilename();
                 String fileName = FileUtil.saveFile(originalFileName, file);
@@ -100,7 +106,10 @@ public class ChatServiceImpl implements ChatService {
         }
         messageRepository.save(userMsg);
 
-        String rawJson = callGeminiApi(content, file);
+        // Fetch history to provide context to Gemini
+        List<Message> history = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId);
+
+        String rawJson = callGeminiApi(history);
         String aiText = extractTextFromJson(rawJson);
 
         Message aiMsg = Message.builder()
@@ -120,45 +129,60 @@ public class ChatServiceImpl implements ChatService {
         conversationRepository.deleteById(conversationId);
     }
 
-    private String callGeminiApi(String prompt, MultipartFile file) {
+    private String callGeminiApi(List<Message> history) {
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        List<Map<String, Object>> parts = new ArrayList<>();
-        parts.add(Map.of("text", prompt));
+        List<Map<String, Object>> contents = new ArrayList<>();
 
-        if (file != null && !file.isEmpty()) {
-            try {
-                String base64Data = Base64.getEncoder().encodeToString(file.getBytes());
-                parts.add(Map.of(
-                        "inline_data", Map.of(
-                                "mime_type", file.getContentType(),
-                                "data", base64Data
-                        )
+        for (Message msg : history) {
+            List<Map<String, Object>> parts = new ArrayList<>();
+
+            if (msg.getContent() != null && !msg.getContent().isEmpty()) {
+                parts.add(Map.of("text", msg.getContent()));
+            }
+
+            if (msg.getFilePath() != null) {
+                try {
+                    Path path = Paths.get(FileUtil.UPLOAD_FOLDER, msg.getFilePath());
+                    if (Files.exists(path)) {
+                        byte[] fileData = Files.readAllBytes(path);
+                        parts.add(Map.of(
+                                "inline_data", Map.of(
+                                        "mime_type", msg.getFileType(),
+                                        "data", Base64.getEncoder().encodeToString(fileData)
+                                )
+                        ));
+                    }
+                } catch (IOException e) {
+                    log.error("Error reading file for Gemini context: {}", msg.getFilePath(), e);
+                }
+            }
+
+            if (!parts.isEmpty()) {
+                contents.add(Map.of(
+                        "role", msg.getRole().name().toLowerCase(),
+                        "parts", parts
                 ));
-            } catch (IOException e) {
-                log.error("Error encoding file", e);
             }
         }
 
-        Map<String, Object> bodyMap = Map.of(
-                "contents", List.of(Map.of("parts", parts))
-        );
+        if (contents.isEmpty()) {
+            return "{\"error\": {\"message\": \"No content to send\"}}";
+        }
+
+        Map<String, Object> bodyMap = Map.of("contents", contents);
 
         try {
             String body = objectMapper.writeValueAsString(bodyMap);
             HttpEntity<String> request = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-            if (response.getStatusCode().is2xxSuccessful()) {
-                return response.getBody();
-            } else {
-                return "Error: " + response.getStatusCode();
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error building request body", e);
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("Error calling Gemini API", e);
+            return "{\"error\": {\"message\": \"" + e.getMessage() + "\"}}";
         }
     }
 
@@ -171,9 +195,35 @@ public class ChatServiceImpl implements ChatService {
     private String extractTextFromJson(String json) {
         try {
             JsonNode root = objectMapper.readTree(json);
-            return root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
+            
+            // Check for candidates
+            JsonNode candidates = root.path("candidates");
+            if (candidates.isArray() && candidates.size() > 0) {
+                JsonNode firstCandidate = candidates.get(0);
+                JsonNode content = firstCandidate.path("content");
+                JsonNode parts = content.path("parts");
+                if (parts.isArray() && parts.size() > 0) {
+                    return parts.get(0).path("text").asText();
+                }
+            }
+            
+            // Check for error field in the response
+            if (root.has("error")) {
+                return "AI Error: " + root.path("error").path("message").asText();
+            }
+            
+            // Check for finishReason
+            if (candidates.isArray() && candidates.size() > 0) {
+                String finishReason = candidates.get(0).path("finishReason").asText();
+                if ("SAFETY".equals(finishReason)) {
+                    return "Nội dung bị chặn do vi phạm chính sách an toàn.";
+                }
+            }
+
+            return "AI không thể phản hồi vào lúc này.";
         } catch (Exception e) {
-            return "Error parsing response from AI";
+            log.error("Error parsing response: {}", json, e);
+            return "Lỗi xử lý phản hồi từ AI";
         }
     }
 

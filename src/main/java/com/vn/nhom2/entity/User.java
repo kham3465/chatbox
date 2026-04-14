@@ -47,6 +47,8 @@ public class User implements UserDetails {
     private Double weight;
     @Column(name = "blood_group")
     private String bloodGroup;
+    @Column(name = "fcm_token")
+    private String fcmToken;
     @Column(name = "image_profile")
     private String imageProfile;
     @Override

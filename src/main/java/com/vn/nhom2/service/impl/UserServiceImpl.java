@@ -13,6 +13,8 @@ import com.vn.nhom2.util.FileUtil;
 import com.vn.nhom2.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -75,6 +77,25 @@ public class UserServiceImpl implements UserService {
             throw new ClientErrorException("Người dùng không được xác thực");
         }
         return getUserProfile(currentUser.getId());
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "fcmTokens", key = "#userId")
+    public void updateFcmToken(Long userId, String fcmToken) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại"));
+        user.setFcmToken(fcmToken);
+        userRepository.save(user);
+        log.info("Updated FCM token for user: {}", userId);
+    }
+
+    @Override
+    @Cacheable(value = "fcmTokens", key = "#userId")
+    public String getFcmToken(Long userId) {
+        return userRepository.findById(userId)
+                .map(User::getFcmToken)
+                .orElse(null);
     }
 
     private UserProfileResponse mapUserToProfileResponse(User user) {

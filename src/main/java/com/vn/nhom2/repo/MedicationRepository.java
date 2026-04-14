@@ -2,8 +2,11 @@ package com.vn.nhom2.repo;
 
 import com.vn.nhom2.entity.Medication;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,4 +36,9 @@ public interface MedicationRepository extends JpaRepository<Medication, Long> {
      * @return medication if found
      */
     Optional<Medication> findByIdAndUserId(Long id, Long userId);
-}
+
+    @Query("SELECT m FROM Medication m WHERE m.isActive = true AND (" +
+            "m.medicationTime1 = :now OR " +
+            "m.medicationTime2 = :now OR " +
+            "m.medicationTime3 = :now)")
+    List<Medication> findMedicationsToRemind(@Param("now") LocalTime now);}

@@ -5,15 +5,27 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class SecurityUtil {
     public static Long getCurrentUserId() {
-        User userDetail = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return userDetail.getId();
+        User user = getCurrentUser();
+        return user != null ? user.getId() : null;
     }
 
     public static User getCurrentUser() {
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            return null;
+        }
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User) {
+            return (User) principal;
+        }
+        return null;
     }
 
     public static boolean isAnonymousUser() {
-        return SecurityContextHolder.getContext().getAuthentication().getPrincipal().equals("anonymousUser");
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            return true;
+        }
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return principal.equals("anonymousUser");
     }
 }
+

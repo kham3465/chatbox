@@ -57,4 +57,34 @@ public class FileController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
+
+    @GetMapping("/download/{filename}")
+    @Operation(summary = "Download file", description = "Download a file by its filename")
+    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
+        try {
+            Resource resource = FileUtil.getFileAsResource(filename);
+            String contentType = "application/octet-stream";
+
+            try {
+                contentType = Files.probeContentType(resource.getFile().toPath());
+            } catch (IOException ex) {
+                log.info("Could not determine file type.");
+            }
+
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (IOException e) {
+            log.error("Error retrieving file: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            log.error("Error retrieving file: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
 }
