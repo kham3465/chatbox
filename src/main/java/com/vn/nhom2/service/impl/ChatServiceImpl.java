@@ -137,7 +137,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private String callGeminiApi(List<Message> history) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=" + apiKey;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -154,7 +154,9 @@ public class ChatServiceImpl implements ChatService {
                 try {
                     String filePath = msg.getFilePath();
                     String fileName = filePath;
-                    if (filePath.contains("/api/v1/file/view/")) {
+                    if (filePath != null && (filePath.contains("/api/v1/file/view/") || filePath.contains("/api/v1/file/download/"))) {
+                        fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
+                    } else if (filePath != null && (filePath.startsWith("http://") || filePath.startsWith("https://"))) {
                         fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
                     }
                     Path path = Paths.get(FileUtil.UPLOAD_FOLDER, fileName);
