@@ -96,8 +96,15 @@ public class ChatServiceImpl implements ChatService {
             FileUtil.validateFiles(List.of(file), fileConfig);
             try {
                 String originalFileName = file.getOriginalFilename();
+                if (originalFileName != null) {
+                    originalFileName = originalFileName.replaceAll("\\s+", "");
+                }
                 String fileName = FileUtil.saveFile(originalFileName, file);
-                userMsg.setFilePath(fileName);
+                String fileUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/api/v1/file/download/")
+                        .path(fileName)
+                        .toUriString();
+                userMsg.setFilePath(fileUrl);
                 userMsg.setFileType(file.getContentType());
             } catch (IOException e) {
                 log.error("Error saving file: {}", e.getMessage());
@@ -130,7 +137,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private String callGeminiApi(List<Message> history) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -145,7 +152,12 @@ public class ChatServiceImpl implements ChatService {
 
             if (msg.getFilePath() != null) {
                 try {
-                    Path path = Paths.get(FileUtil.UPLOAD_FOLDER, msg.getFilePath());
+                    String filePath = msg.getFilePath();
+                    String fileName = filePath;
+                    if (filePath.contains("/api/v1/file/download/")) {
+                        fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
+                    }
+                    Path path = Paths.get(FileUtil.UPLOAD_FOLDER, fileName);
                     if (Files.exists(path)) {
                         byte[] fileData = Files.readAllBytes(path);
                         parts.add(Map.of(
