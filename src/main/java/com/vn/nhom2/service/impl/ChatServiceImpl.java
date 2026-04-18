@@ -101,7 +101,7 @@ public class ChatServiceImpl implements ChatService {
                 }
                 String fileName = FileUtil.saveFile(originalFileName, file);
                 String fileUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
-                        .path("/api/v1/file/download/")
+                        .path("/api/v1/file/view/")
                         .path(fileName)
                         .toUriString();
                 userMsg.setFilePath(fileUrl);
@@ -154,7 +154,7 @@ public class ChatServiceImpl implements ChatService {
                 try {
                     String filePath = msg.getFilePath();
                     String fileName = filePath;
-                    if (filePath.contains("/api/v1/file/download/")) {
+                    if (filePath.contains("/api/v1/file/view/")) {
                         fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
                     }
                     Path path = Paths.get(FileUtil.UPLOAD_FOLDER, fileName);
