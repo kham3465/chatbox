@@ -24,6 +24,12 @@ public class AppWideExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<Object> handleBadCredentialsException(org.springframework.security.authentication.BadCredentialsException e) {
+        return new ResponseEntity<>(new StandardResponse("401", "Unauthorized", "Sai tài khoản hoặc mật khẩu"), HttpStatus.UNAUTHORIZED);
+    }
+
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleException(Exception e) {
         return new ResponseEntity<>(new StandardResponse("500", "Error", e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);

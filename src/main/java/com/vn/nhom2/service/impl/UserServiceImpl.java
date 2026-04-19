@@ -99,6 +99,18 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserProfileResponse mapUserToProfileResponse(User user) {
+        String avatarUrl = user.getImageProfile();
+        if (avatarUrl != null && !avatarUrl.startsWith("http")) {
+            try {
+                avatarUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/api/v1/file/avatar/")
+                        .path(avatarUrl)
+                        .toUriString();
+            } catch (Exception e) {
+                log.warn("Could not determine full URL for avatar", e);
+            }
+        }
+
         return new UserProfileResponse(
                 user.getId(),
                 user.getName(),
@@ -109,6 +121,6 @@ public class UserServiceImpl implements UserService {
                 user.getHeight(),
                 user.getWeight(),
                 user.getBloodGroup(),
-                user.getImageProfile());
+                avatarUrl);
     }
 }
