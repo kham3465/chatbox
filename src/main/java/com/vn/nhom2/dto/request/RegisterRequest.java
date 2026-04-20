@@ -10,7 +10,8 @@ public class RegisterRequest {
     @NotBlank(message = "Name cannot be blank")
     private String name;
     @NotBlank(message = "Password cannot be blank")
-    @Size(min = 6, max = 6, message = "Password must be exactly 6 characters")
+    @Size(min = 6, max = 6, message = "Password must be exactly 6 digits")
+    @Pattern(regexp = "^[0-9]{6}$", message = "Password must contain only digits")
     private String password;
     @NotBlank(message = "Phone number cannot be blank")
     @Pattern(regexp = "^\\d{10}$", message = "Phone number must be 10 digits")
