@@ -1,6 +1,8 @@
 package com.vn.nhom2.service.impl;
 
 import com.vn.nhom2.entity.Medication;
+import com.vn.nhom2.entity.MedicationNotification;
+import com.vn.nhom2.repo.MedicationNotificationRepository;
 import com.vn.nhom2.repo.MedicationRepository;
 import com.vn.nhom2.service.MedicationService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -18,7 +21,7 @@ public class ReminderTask {
 
     private final MedicationRepository medicationRepository;
     private final MedicationService medicationService;
-
+    private final MedicationNotificationRepository notificationRepository;
     /**
      * Task runs every minute to check for medications that need a reminder.
      * Uses cron "0 * * * * *" to trigger at the start of every minute.
@@ -35,6 +38,16 @@ public class ReminderTask {
             for (Medication medication : medications) {
                 try {
                     medicationService.processMedicationReminder(medication.getId());
+
+                    MedicationNotification notification = new MedicationNotification();
+                    notification.setMedicationId(medication.getId());
+                    notification.setUserId(medication.getUserId());
+                    notification.setTitle("Lịch uống thuốc: " + medication.getName());
+                    notification.setMessage("Đã đến giờ uống " + medication.getDosageAmount() + " " + medication.getDosageUnit() + ". Đừng quên nhé!");
+                    notification.setSentTime(LocalDateTime.now());
+                    notification.setIsRead(false);
+
+
                 } catch (Exception e) {
                     log.error("Error processing reminder for medication ID {}: {}", medication.getId(), e.getMessage());
                 }

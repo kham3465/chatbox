@@ -44,6 +44,7 @@ public class SecurityConfiguration {
                         "/api/v1/user/").permitAll()
                         .requestMatchers("/api/v1/user/**",
                                 "/api/v1/medications/**",
+                                "/api/v1/notifications/**",
                                 "/api/v1/chat/**").authenticated()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider)
