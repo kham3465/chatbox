@@ -105,7 +105,29 @@ public class ChatServiceImpl implements ChatService {
                         .path(fileName)
                         .toUriString();
                 userMsg.setFilePath(fileUrl);
-                userMsg.setFileType(file.getContentType());
+                String contentType = file.getContentType();
+                if (contentType == null || contentType.equals("application/octet-stream")) {
+                    String ext = "";
+                    if (originalFileName != null && originalFileName.contains(".")) {
+                        ext = originalFileName.substring(originalFileName.lastIndexOf(".") + 1).toLowerCase();
+                    }
+                    switch (ext) {
+                        case "png": contentType = "image/png"; break;
+                        case "jpg": case "jpeg": contentType = "image/jpeg"; break;
+                        case "gif": contentType = "image/gif"; break;
+                        case "mp3": contentType = "audio/mpeg"; break;
+                        case "wav": contentType = "audio/wav"; break;
+                        case "m4a": case "aac": contentType = "audio/aac"; break;
+                        case "mp4": contentType = "video/mp4"; break;
+                        case "pdf": contentType = "application/pdf"; break;
+                        default: contentType = "application/octet-stream";
+                    }
+                }
+                userMsg.setFileType(contentType);
+                
+                if (contentType != null && contentType.startsWith("audio/")) {
+                    userMsg.setContent("");
+                }
             } catch (IOException e) {
                 log.error("Error saving file: {}", e.getMessage());
                 throw new ClientErrorException("Không thể lưu file đính kèm");
@@ -137,7 +159,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private String callGeminiApi(List<Message> history) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
