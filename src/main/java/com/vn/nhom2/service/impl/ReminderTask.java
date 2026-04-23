@@ -46,6 +46,7 @@ public class ReminderTask {
                     notification.setMessage("Đã đến giờ uống " + medication.getDosageAmount() + " " + medication.getDosageUnit() + ". Đừng quên nhé!");
                     notification.setSentTime(LocalDateTime.now());
                     notification.setIsRead(false);
+
                     notificationRepository.save(notification);
 
                 } catch (Exception e) {
