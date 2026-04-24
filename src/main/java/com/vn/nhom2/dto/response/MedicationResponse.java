@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -40,16 +42,19 @@ public class MedicationResponse {
     /**
      * First scheduled time to take medication
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime medicationTime1;
     
     /**
      * Second scheduled time (optional)
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime medicationTime2;
     
     /**
      * Third scheduled time (optional)
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime medicationTime3;
     
     private LocalDate startDate;
