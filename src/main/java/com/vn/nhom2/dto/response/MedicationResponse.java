@@ -56,9 +56,6 @@ public class MedicationResponse {
      */
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime medicationTime3;
-    
-    private LocalDate startDate;
-    private LocalDate endDate;
     private Boolean isActive;
     private String status; // "active", "upcoming", "expired"
     private LocalDateTime createdTime;

@@ -63,11 +63,6 @@ public class MedicationServiceImpl implements MedicationService {
     @CacheEvict(value = "medicationReminders", allEntries = true)
     public MedicationResponse createMedication(MedicationRequest request) {
         User currentUser = getCurrentAuthenticatedUser();
-        
-        // Validate dates
-        if (request.getEndDate().isBefore(request.getStartDate())) {
-            throw new ClientErrorException("Ngày kết thúc phải sau ngày bắt đầu");
-        }
 
         Medication medication = new Medication();
         medication.setUserId(currentUser.getId());
@@ -79,8 +74,7 @@ public class MedicationServiceImpl implements MedicationService {
         medication.setMedicationTime1(request.getMedicationTime1());
         medication.setMedicationTime2(request.getMedicationTime2());
         medication.setMedicationTime3(request.getMedicationTime3());
-        medication.setStartDate(request.getStartDate());
-        medication.setEndDate(request.getEndDate());
+
         medication.setIsActive(true);
 
         Medication savedMedication = medicationRepository.save(medication);
@@ -96,10 +90,6 @@ public class MedicationServiceImpl implements MedicationService {
         Medication medication = medicationRepository.findByIdAndUserId(medicationId, currentUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Thuốc không tồn tại"));
 
-        // Validate dates
-        if (request.getEndDate().isBefore(request.getStartDate())) {
-            throw new ClientErrorException("Ngày kết thúc phải sau ngày bắt đầu");
-        }
 
         medication.setName(request.getName());
         medication.setDosageAmount(request.getDosageAmount());
@@ -109,8 +99,7 @@ public class MedicationServiceImpl implements MedicationService {
         medication.setMedicationTime1(request.getMedicationTime1());
         medication.setMedicationTime2(request.getMedicationTime2());
         medication.setMedicationTime3(request.getMedicationTime3());
-        medication.setStartDate(request.getStartDate());
-        medication.setEndDate(request.getEndDate());
+
 
         Medication updatedMedication = medicationRepository.save(medication);
         log.info("Updated medication with ID: {} for user: {}", updatedMedication.getId(), currentUser.getId());
@@ -138,14 +127,7 @@ public class MedicationServiceImpl implements MedicationService {
 
         LocalDate today = LocalDate.now();
         
-        // Validate: medication must be within start and end date
-        if (today.isBefore(medication.getStartDate())) {
-            throw new ClientErrorException("Chưa đến ngày bắt đầu uống thuốc");
-        }
-        
-        if (today.isAfter(medication.getEndDate())) {
-            throw new ClientErrorException("Thuốc đã hết hạn");
-        }
+
         
         // Calculate remaining quantity from consumption history
         Integer totalConsumed = consumptionHistoryRepository.getTotalAmountConsumed(medicationId);
@@ -203,10 +185,7 @@ public class MedicationServiceImpl implements MedicationService {
     private Medication updateMedicationStatus(Medication medication) {
         LocalDate today = LocalDate.now();
         
-        // Mark as inactive if endDate has passed
-        if (today.isAfter(medication.getEndDate())) {
-            medication.setIsActive(false);
-        }
+
         
         // Mark as inactive if remaining quantity reaches 0 (calculated from consumption history)
         Integer totalConsumed = consumptionHistoryRepository.getTotalAmountConsumed(medication.getId());
@@ -225,13 +204,7 @@ public class MedicationServiceImpl implements MedicationService {
     private String calculateMedicationStatus(Medication medication) {
         LocalDate today = LocalDate.now();
         
-        if (today.isBefore(medication.getStartDate())) {
-            return "upcoming";
-        }
-        
-        if (today.isAfter(medication.getEndDate())) {
-            return "expired";
-        }
+
         
         // Calculate remaining from consumption history
         Integer totalConsumed = consumptionHistoryRepository.getTotalAmountConsumed(medication.getId());
@@ -278,8 +251,7 @@ public class MedicationServiceImpl implements MedicationService {
         response.setMedicationTime1(medication.getMedicationTime1());
         response.setMedicationTime2(medication.getMedicationTime2());
         response.setMedicationTime3(medication.getMedicationTime3());
-        response.setStartDate(medication.getStartDate());
-        response.setEndDate(medication.getEndDate());
+
         response.setIsActive(medication.getIsActive());
         response.setStatus(calculateMedicationStatus(medication));
         response.setCreatedTime(medication.getCreatedTime());
