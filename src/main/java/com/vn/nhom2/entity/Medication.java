@@ -61,11 +61,6 @@ public class Medication {
     @Column(name = "medication_time_3")
     private LocalTime medicationTime3;
 
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
-
-    @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
 
     @Column(name = "is_active")
     private Boolean isActive = true;

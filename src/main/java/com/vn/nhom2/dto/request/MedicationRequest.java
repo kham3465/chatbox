@@ -65,10 +65,6 @@ public class MedicationRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime medicationTime3;
 
-    @NotNull(message = "Start date is required")
-    private LocalDate startDate;
 
-    @NotNull(message = "End date is required")
-    private LocalDate endDate;
 }
 
