@@ -49,6 +49,7 @@ public class UserServiceImpl implements UserService {
         user.setHeight(request.getHeight());
         user.setWeight(request.getWeight());
         user.setBloodGroup(request.getBloodGroup());
+        user.setPhoneNumber(request.getPhone());
 
         // Handle image file upload if provided
         if (imageFile != null && !imageFile.isEmpty()) {

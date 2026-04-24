@@ -15,6 +15,7 @@ public class UserProfileUpdateRequest {
     private LocalDate dateOfBirth;
     
     private String sex;
+    private String phone;
     
     private Double height;
     
