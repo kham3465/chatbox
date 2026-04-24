@@ -51,9 +51,6 @@ public class MedicationResponse {
      * Third scheduled time (optional)
      */
     private LocalTime medicationTime3;
-    
-    private LocalDate startDate;
-    private LocalDate endDate;
     private Boolean isActive;
     private String status; // "active", "upcoming", "expired"
     private LocalDateTime createdTime;
