@@ -21,7 +21,7 @@ public class MedicationNotificationServiceImpl implements MedicationNotification
 
     @Override
     public List<MedicationNotification> getAllNotifications(Long userId) {
-        return notificationRepository.findByUserId(userId);
+        return notificationRepository.findByUserIdOrderBySentTimeDesc(userId);
     }
 
     @Override
