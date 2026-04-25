@@ -85,7 +85,9 @@ public class ChatServiceImpl implements ChatService {
     public ChatMessageResponse sendUserMessage(Long conversationId, String content, MultipartFile file) {
         User currentUser = getCurrentAuthenticatedUser();
         Conversation conversation = validateConversationOwnership(conversationId, currentUser.getId());
-
+        if(conversation.getTitle()==null||conversation.getTitle().isEmpty()){
+            conversation.setTitle(content.isEmpty()?"Nội dung audio":content);
+        }
         Message userMsg = Message.builder()
                 .conversation(conversation)
                 .role(MessageRole.USER)
