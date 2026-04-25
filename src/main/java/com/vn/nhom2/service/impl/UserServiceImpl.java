@@ -43,14 +43,29 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại"));
 
         // Update profile fields (phone number is excluded and cannot be updated)
-        user.setFullName(request.getFullName());
-        user.setDateOfBirth(request.getDateOfBirth());
-        user.setSex(request.getSex());
-        user.setHeight(request.getHeight());
-        user.setWeight(request.getWeight());
-        user.setBloodGroup(request.getBloodGroup());
-        if(request.getPhone()!=user.getPhoneNumber()){
-            throw new ClientErrorException("Số điện thoại không được thay đổi");
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            user.setFullName(request.getFullName());
+        }
+        if (request.getDateOfBirth() != null) {
+            user.setDateOfBirth(request.getDateOfBirth());
+        }
+        if (request.getSex() != null) {
+            user.setSex(request.getSex());
+        }
+        if (request.getHeight() != null) {
+            user.setHeight(request.getHeight());
+        }
+        if (request.getWeight() != null) {
+            user.setWeight(request.getWeight());
+        }
+        if (request.getBloodGroup() != null) {
+            user.setBloodGroup(request.getBloodGroup());
+        }
+        if (request.getImageProfile() != null) {
+            user.setImageProfile(request.getImageProfile());
+        }
+        if(request.getPhone()!=null){
+            user.setPhoneNumber(request.getPhone());
         }
 
         // Handle image file upload if provided
