@@ -49,7 +49,9 @@ public class UserServiceImpl implements UserService {
         user.setHeight(request.getHeight());
         user.setWeight(request.getWeight());
         user.setBloodGroup(request.getBloodGroup());
-        user.setPhoneNumber(request.getPhone());
+        if(request.getPhone()!=user.getPhoneNumber()){
+            throw new ClientErrorException("Số điện thoại không được thay đổi");
+        }
 
         // Handle image file upload if provided
         if (imageFile != null && !imageFile.isEmpty()) {
